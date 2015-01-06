@@ -26,27 +26,28 @@ class Station
 		@pretty_name = pretty_name
 	end
 
-	def to_s
-		name
-	end
+	alias to_s name
 
 	def print
-		if @pretty_name['region'].nil? || @pretty_name['region'] == "-"
-			puts "Location: #{@pretty_name['city']}, #{pretty_name['country']}"
-			puts "Time observed: #{@time}"
-			puts "Temperature: #{@temp} C"
-			puts "Dewpoint: #{@dewpoint} C"
-			puts "Relative humidity: #{@humidity} %"
-			puts "Current conditions: #{@conditions}"
-			puts
+		if @pretty_name['region'].nil? || @pretty_name['region'] == ?- then puts <<MSG
+Location: #{@pretty_name['city']}, #{pretty_name['country']}
+Time observed: #{@time}
+puts "Temperature: #{@temp} C"
+puts "Dewpoint: #{@dewpoint} C"
+Relative humidity: #{@humidity} %
+Current conditions: #{@conditions}
+
+MSG
 		else
-			puts "Location: #{@pretty_name['city']}, #{@pretty_name['region']}, #{pretty_name['country']}"
-			puts "Time observed: #{@time}"
-			puts "Temperature: #{@temp} C"
-			puts "Dewpoint: #{@dewpoint} C"
-			puts "Relative humidity: #{@humidity} %"
-			puts "Current conditions: #{@conditions}"
-			puts
+			puts <<MSG
+Location: #{@pretty_name['city']}, #{@pretty_name['region']}, #{pretty_name['country']}
+Time observed: #{@time}
+Temperature: #{@temp} C
+Dewpoint: #{@dewpoint} C
+Relative humidity: #{@humidity} %
+Current conditions: #{@conditions}
+
+MSG
 		end
 	end
 
@@ -80,38 +81,35 @@ class Station
 	end
 
 	def matches_time?(other_station)
-		other_station.time <= (self.time + 1) && other_station.time >= (self.time - 1)
+		other_station.time <= (@time + 1) && other_station.time >= (@time - 1)
 	end
 
 	def matches_temp?(other_station)
-		other_station.temp <= (self.temp + 1) && other_station.temp >= (self.temp - 1)
+		other_station.temp <= (@temp + 1) && other_station.temp >= (@temp - 1)
 	end
 
 	def matches_dewpoint?(other_station)
-		other_station.dewpoint <= (self.dewpoint + 1) && other_station.dewpoint >= (self.dewpoint - 1)
+		other_station.dewpoint <= (@dewpoint + 1) && other_station.dewpoint >= (@dewpoint - 1)
 	end
 
 	def matches?(other_station)
-		other_station.conditions == self.conditions && 
+		other_station.conditions == @conditions && 
 			matches_temp?(other_station) &&
 			matches_dewpoint?(other_station)
 	end
 
 	def too_close?(station)
-		distance = Haversine.distance(self.latitude, self.longitude, station.latitude, station.longitude)
-		distance.to_km < 4000
+		Haversine.distance(@latitude, @longitude, station.latitude, station.longitude).to_km < 4000
 	end
 
 	def print_matches_in(stations)
 		matching = stations.find_all do |ea|
-		 	ea != self && !self.too_close?(ea) && self.matches?(ea)
+		 	ea != self && !too_close?(ea) && matches?(ea)
 		end
 
-		result = []
+		result = Array.new
 		matching.each do |ea|
-			unless result.any? { |station| station.too_close?(ea) }
-				result << ea
-			end
+			result << ea unless result.any? { |station| station.too_close?(ea) }
 		end
 
 		unless result.empty?
@@ -123,8 +121,7 @@ class Station
 			  end
 			end
 			str = place_names.join("; ")
-			puts "#{self} matches #{str}."
-			puts
+			puts "#{self} matches #{str}.\n"
 		end
 	end
 
@@ -133,20 +130,20 @@ end
 # countries = ["ae", "af", "ag", "al", "am", "ao", "aq", "ar", "at", "au", "aw", "az", "ba", "bb", "bd", "be", "bf", "bg", "bh", "bj", "bm", "bo", "br", "bs", "bt", "bw", "by", "bz", "cf", "cg", "ch", "ci", "cl", "cm", "cn", "co", "cr", "cu", "cv", "cy", "cz", "de", "dj", "dk", "dm", "do", "dz", "ec", "ee", "eg", "es", "et", "fi", "fj", "fk", "fm",  "fr", "ga", "gb", "gd", "ge", "gh", "gi", "gl", "gm", "gn", "gp", "gq", "gr", "gt", "gw", "gy", "hk", "hn", "hr", "hu", "id", "ie", "il", "in", "iq", "ir", "is", "it", "jm", "jo", "jp", "ke", "kg", "kh", "km", "kn", "kr", "kw", "ky", "kz", "la", "lb", "lc", "lk", "lr", "lt", "lu", "lv", "ly", "ma", "md", "mk", "ml", "mm", "mo", "mq", "mr", "ms", "mt", "mu", "mv", "mw", "mx", "my", "mz", "na", "ne" , "ng", "ni", "nl", "no", "np", "nz", "om", "pa", "pe", "pg", "ph", "pk", "pl", "pt", "py", "qa", "ro", "ru", "rw", "sa", "sb", "sc", "sd", "se", "sg", "sh", "si", "sk", "sl", "sn", "sr", "st", "sv", "sy", "sz",  "td", "tg", "th", "tj", "tm", "tn", "tr", "tt", "tw", "tz", "ua", "ug", "uy", "uz", "vc", "ve", "vi", "vn", "vu", "ws", "ye", "za", "zm", "zw"]
 # countries = ["ae", "ag", "sk"]
 
-countries_without_data = ["ad", "ai", "as", "ax", "bi", "bl", "bn", "bq", "bv", "cc", "cd", "ck", "cw", "cx", "eh", "er","fo", "gf", "gg", "gs", "gu", "hm", "ht", "im", "io", "je", "ki", "kp", "li", "ls", "mc", "me", "mf", "mg", "mh", "mn", "mp", "nc", "nf", "nr", "nu", "pf", "pm", "pn", "pr", "ps", "pw", "re", "rs", "sj", "sm", "so", "ss", "sx","tc", "tf", "tk", "tl", "to", "tv", "um", "va", "vg", "wf", "xk", "yt"]
+countries_without_data = %w[ad ai as ax bi bl bn bq bv cc cd ck cw cx eh er fo gf gg gs gu hm ht im io je ki kp li ls mc me mf mg mh mn mp nc nf nr nu pf pm pn pr ps pw re rs sj sm so ss sx tc tf tk tl to tv um va vg wf xk yt]
 
 # us_and_canada = ["ab", "al", "ak", "az", "ar", "bc", "ca", "co", "ct", "de", "dc", "fl", "ga", "hi", "id", "il", "in", "ia", "ks", "ky", "la", "mb", me", "md", "ma", "mi", "mn", "ms", "mo", "mt", "nb", "ne", "nv", "nh", "nj", "nl", "nm", "ns", "nt", "nu", "ny", "nc", "nd", "oh", "ok", "on", "or", "pa", "pe", "qc", "ri", "sc", "sd", "sk", "tn", "tx", "ut", "vt", "va", "wa", "wv", "wi", "wy", "yt"]
 
-stations = []
+stations = Array.new
 
 def build_station_name_map
 
 	station_names = CSV.read('../stations.csv', :encoding => 'windows-1251:utf-8', :headers => true)
-	station_id_array = []
+	station_id_array = Array.new
 
 	station_names.map do |ea|
 		ea.to_hash
-		names_hash = {}
+		names_hash = Hash.new
 
 		if !(ea['icao_xref'].nil?)
 			names_hash[:city] = ea['city']
@@ -224,9 +221,7 @@ def read_uri(id)
 		json_string = io.read
 		uri_data = JSON.parse(json_string)
 
-		puts uri_data["response"][0].each do |ea|
-			puts ea
-		end
+		puts uri_data["response"][0].each {|ea| puts ea}
 
 	end
 
@@ -270,7 +265,7 @@ end
 
 def uri_for_station(id)
 
-	query = "id:" + id
+	query = "id: " + id
 
 	my_uri = URI::HTTP.build(
 		{
@@ -332,14 +327,14 @@ end
 # end
 
 # play with tolerance between matches (result array)
-# should i get my request method just to grab all available weather data every 3-4 hours (for now, with the free api)?
+# should I get my request method just to grab all available weather data every 3-4 hours (for now, with the free api)?
 # create a method for taking a location from the user and finding its matches (so i'm not always running tests for all locations)
 # if there are several matches within a certain radius (like, 500 km), return only 1 of them (most exact match), then chosen randomly after that, and also return matches that haven't been shown recently to increase variety
 # list of stations that are sensible sounding
 # show total number of matches so you have an idea how many you're getting (and how many is unwieldy)
 # showing state/province doesn't work for a lot of places because that data is not provided in the response. so this is where your csv file
 # comes in, you can match a unique station id to the stored location data.
-# i think you're eventually going to have to go through the whole csv file and make sure the data is accurate.
+# I think you're eventually going to have to go through the whole csv file and make sure the data is accurate.
 # show actual conditions of "current location", and conditions of places being matched.
 # going to have to test it from perspective of the user (obviously!) in terms of what weather stations are referenced from wherever they're from. like, you're in loon lake, sk - will have to find nearest station, then compare from there.
 # convert time into current time zone?? (well so far current time only shows up on station being matched) - that's just a matter of changing
