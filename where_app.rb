@@ -6,14 +6,14 @@ require "./models/station_name_map.rb"
 
 get '/where_weather' do
 
-	erb :index, :layout => :layout
+	erb :index, layout: :layout
 
 end
 
 # create a ruby script that will generate a json file from the csv data. but you want it to come out in the below
 # format so you can use your location_search code. and this is all the data you want for now.
 	
-# now i would like it to return observations from the api
+# now I would like it to return observations from the api
 # so what you'd need to have happen is the user puts in the name of a city. that name is sent to the server, and you'll now want it
 # to match to a station id. then that id should be used to make a request to the api for the conditions for that city.
 # the matching is also going to have to become a regex type search because no one's going to type in an exact match. but first start
@@ -33,11 +33,11 @@ post '/location_search' do
 		ea[:city].start_with?(query)
   end
 
-  content = if matches.empty?
-  	erb :_no_result
+ 	content = if matches.empty?
+  		erb :_no_result
 	else
-  	erb :_data_field, :layout => false, :locals => { :matches => matches }
+  		erb :_data_field, layout: false, locals: { matches: matches }
 	end
 
-  { :html => content }.to_json # this is what is returned as 'data' in the jquery code. using .select, this will be an array
+  { html: content }.to_json # this is what is returned as 'data' in the jquery code. using .select, this will be an array
 end
